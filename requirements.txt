@@ -1,0 +1,6 @@
+Flask
+Flask-RESTful
+Flask-Login
+Flask-API
+pyOpenSSL
+requests
