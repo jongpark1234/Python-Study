@@ -1,6 +1,13 @@
-import os
+import os, sys
 from flask import Flask, request, jsonify, render_template, redirect
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+
+from werkzeug.wrappers import Response
+
+from model.user import User
+from config.config import USERS
+
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -8,46 +15,14 @@ app.secret_key = os.urandom(24)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# 사용자 정보를 저장하는 간단한 사용자 클래스
-class User:
-    def __init__(self, user_id: str, user_pwd: str=None, email: str=None, authenticated: bool=False):
-        self.user_id = user_id
-        self.user_pwd = user_pwd
-        self.email = email
-        self.authenticated = authenticated
-
-    def __repr__(self):
-        return str({
-            'user_id': self.user_id,
-            'user_pwd': self.user_pwd,
-            'email': self.email,
-            'authenticated': self.authenticated,
-        })
-
-    def can_login(self, user_pwd):
-        return self.user_pwd == user_pwd
-
-    def is_active(self):
-        return True
-
-    def get_id(self):
-        return self.user_id
-
-    def is_authenticated(self):
-        return self.authenticated
-
-    def is_anonymous(self):
-        return False
-
-# 더미 사용자 데이터베이스
-USERS = {
-    'jongpark1234': User('jongpark1234', '1234'),
-}
-
 # Flask-Login을 위한 사용자 로더 함수
 @login_manager.user_loader
 def user_loader(user_id):
     return USERS[user_id]
+
+@login_manager.unauthorized_handler
+def unauthorized() -> Response:
+    return redirect('/unauthorized')
 
 @app.route("/", methods=['GET'])
 def indexPage():
@@ -61,6 +36,10 @@ def loginPage():
 @app.route("/main", methods=['GET'])
 def mainPage():
     return render_template('main.html')
+
+@app.route("/unauthorized", methods=['GET'])
+def unauthorizedPage():
+    return render_template('unauthorized.html')
 
 # 사용자 추가 API 엔드포인트
 @app.route("/api/add_user", methods=['POST'])
