@@ -6,44 +6,39 @@
     <title>Login Page</title>
 </head>
 <body>
+    <h2>Login</h2>
 
-<h2>Login</h2>
-
-<form id="loginForm">
     <label for="user_id">User ID:</label>
     <input type="text" id="user_id" name="user_id" required>
 
     <label for="user_pwd">Password:</label>
     <input type="password" id="user_pwd" name="user_pwd" required>
 
-    <button type="button" onsubmit="submitLoginForm()">Login</button>
-</form>
+    <button type="submit" onclick="submitLogin()">Login</button>
 
-<script>
-    function submitLoginForm() {
-        const user_id = document.getElementById("user_id").value;
-        const user_pwd = document.getElementById("user_pwd").value;
+    <script>
+        const submitLogin = () => {
+            const user_id = document.getElementById('user_id').value;
+            const user_pwd = document.getElementById('user_pwd').value;
 
-        // AJAX로 로그인 요청 보내기
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/login", true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                let response = JSON.parse(xhr.responseText);
-                if (response.ok) {
-                    alert(response.msg);
-                    window.location.href = "/main";
-                } else {
-                    alert(response.error);
+            // AJAX로 로그인 요청 보내기
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    if (response.ok) {
+                        alert(response.msg);
+                        window.location.href = '/main';
+                    } else {
+                        alert(response.error);
+                    }
                 }
-            }
-        };
+            };
 
-        xhr.send(JSON.stringify({ 'user_id': user_id, 'user_pwd': user_pwd }));
-    }
-</script>
-
+            xhr.send(JSON.stringify({ 'user_id': user_id, 'user_pwd': user_pwd }));
+        }
+    </script>
 </body>
 </html>

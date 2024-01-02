@@ -1,1 +1,33 @@
-zz
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center;">
+    <h2>메인 페이지 입니다</h2>
+    <button onclick="submitLogout()">로그아웃</button>
+
+    <script>
+        const submitLogout = () => {
+            // AJAX로 로그아웃 요청 보내기
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/logout', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    if (response.ok) {
+                        alert(response.msg);
+                        window.location.href = '/login';
+                    } else {
+                        alert(response.error);
+                    }
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

@@ -3,11 +3,8 @@ from flask import Flask, request, jsonify, render_template, redirect
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 from werkzeug.wrappers import Response
-
 from model.user import User
 from config.config import USERS
-
-
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -17,32 +14,37 @@ login_manager.init_app(app)
 
 # Flask-Login을 위한 사용자 로더 함수
 @login_manager.user_loader
-def user_loader(user_id):
+def user_loader(user_id: str) -> User:
     return USERS[user_id]
 
+# Unauthorized Handler
 @login_manager.unauthorized_handler
 def unauthorized() -> Response:
     return redirect('/unauthorized')
 
-@app.route("/", methods=['GET'])
+# 인덱스 페이지 렌더링
+@app.route('/', methods=['GET'])
 def indexPage():
     return redirect('main')
 
 # 로그인 페이지 렌더링
-@app.route("/login", methods=['GET'])
+@app.route('/login', methods=['GET'])
 def loginPage():
     return render_template('login.html')
 
-@app.route("/main", methods=['GET'])
+# 메인 페이지 렌더링
+@app.route('/main', methods=['GET'])
+@login_required
 def mainPage():
     return render_template('main.html')
 
-@app.route("/unauthorized", methods=['GET'])
+# 401 페이지 렌더링
+@app.route('/unauthorized', methods=['GET'])
 def unauthorizedPage():
     return render_template('unauthorized.html')
 
 # 사용자 추가 API 엔드포인트
-@app.route("/api/add_user", methods=['POST'])
+@app.route('/api/add_user', methods=['POST'])
 def addUser():
     user_id = request.json['user_id']
     user_pwd = request.json['user_pwd']
@@ -54,7 +56,7 @@ def addUser():
         json_res = {'ok': True, 'msg': f'user <{user_id}> added'}
     return jsonify(json_res)
 
-# Login API Endpoint
+# 로그인 API 엔드포인트
 @app.route('/api/login', methods=['POST'])
 def login():
     user_id = request.json['user_id']
@@ -75,9 +77,9 @@ def login():
 def logout():
     user = current_user
     user.authenticated = False
-    json_res = {'ok': True, 'msg': f'user <{user.user_id}> logout'}
+    json_res = { 'ok': True, 'msg': f'user <{user.user_id}> logout' }
     logout_user()
     return jsonify(json_res)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
