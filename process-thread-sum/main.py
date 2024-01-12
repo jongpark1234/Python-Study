@@ -25,7 +25,7 @@ def do_threading(ranges: Tuple[int]) -> List[List[int]]:
         return list(executor.map(calculate_sum, thread_ranges))
 
 
-def do_processing(start: int, end: int) -> None:
+def do_processing(start: int, end: int) -> int:
     num_processes = 4
     process_ranges = get_ranges_array(start, end, num_processes)
     
