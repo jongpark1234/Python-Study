@@ -34,7 +34,7 @@ def do_processing() -> None:
     
     with multiprocessing.Pool(processes=num_processes) as pool:
         results = pool.map(do_threading, process_ranges)
-        print(sum(sum(result) for result in results))
+        print(sum(map(sum, results)))
     
 
 if __name__ == "__main__":
