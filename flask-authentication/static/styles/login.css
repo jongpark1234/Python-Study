@@ -27,7 +27,6 @@
 }
 .container {
     width: 384px;
-    height: 512px;
     display: flex;
     flex-direction: column;
     background-color: white;
@@ -88,7 +87,7 @@
     font-size: 16px;
     font-weight: 400;
     line-height: 45px;
-    margin: auto auto 0 auto;
+    margin: 25px auto 0 auto;
     padding: 0 56px;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;

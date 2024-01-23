@@ -1,3 +1,4 @@
+import json
 class User:
     def __init__(self, user_id: str, user_pwd: str=None, email: str=None, authenticated: bool=False):
         self.user_id = user_id
@@ -10,8 +11,16 @@ class User:
             'user_id': self.user_id,
             'user_pwd': self.user_pwd,
             'email': self.email,
-            'authenticated': self.authenticated,
+            'authenticated': self.authenticated
         })
+    
+    def __call__(self) -> dict:
+        return {
+            'user_id': self.user_id,
+            'user_pwd': self.user_pwd,
+            'email': self.email,
+            'authenticated': self.authenticated
+        }
 
     def can_login(self, user_pwd):
         return self.user_pwd == user_pwd

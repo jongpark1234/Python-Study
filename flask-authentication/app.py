@@ -1,11 +1,17 @@
 import os, sys
+
 from flask import Flask, request, session, jsonify, render_template, redirect
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
+from secrets import token_bytes
+
 from werkzeug.wrappers import Response
 from models.user import User
-from configs.config import USERS
+from db.db import DB
+
 from modules.crypt.rsaManager import RSAManager
+from modules.crypt.aesManager import AESManager
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -13,10 +19,15 @@ app.secret_key = os.urandom(24)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+AES_KEY = token_bytes(16)
+
+USERDB = DB('user')
+POSTDB = DB('post')
+
 # Flask-Login을 위한 사용자 로더 함수
 @login_manager.user_loader
 def user_loader(user_id: str) -> User:
-    return USERS[user_id]
+    return User(USERDB.getDB()[user_id])
 
 # Unauthorized Handler
 @login_manager.unauthorized_handler
@@ -32,9 +43,17 @@ def indexPage():
 @app.route('/login', methods=['GET'])
 def loginPage():
     private_key, public_key = RSAManager.init()
-    
     session['private_key'] = private_key
+    
     return render_template('login.html', public_key=public_key.decode())
+
+# 회원가입 페이지 렌더링
+@app.route('/register', methods=['GET'])
+def registerPage():
+    private_key, public_key = RSAManager.init()
+    session['private_key'] = private_key
+    
+    return render_template('register.html', public_key=public_key.decode())
 
 # 메인 페이지 렌더링
 @app.route('/main', methods=['GET'])
@@ -47,38 +66,41 @@ def mainPage():
 def unauthorizedPage():
     return render_template('unauthorized.html')
 
-# 사용자 추가 API 엔드포인트
-@app.route('/api/add_user', methods=['POST'])
-def addUser():
-    user_id = request.json['user_id']
-    user_pwd = request.json['user_pwd']
-    if user_id in USERS:
-        json_res = { 'ok': False, 'error': f'user <{user_id}> already exists' }
-    else:
-        user = User(user_id, user_pwd)
-        USERS[user_id] = user
-        json_res = { 'ok': True, 'msg': f'user <{user_id}> added' }
-    return jsonify(json_res)
-
 # 로그인 API 엔드포인트
 @app.route('/api/login', methods=['POST'])
 def login():
-    user_id = request.json['user_id']
-    user_pwd = request.json['user_pwd']
-    
     private_key = session['private_key']
+    user_id = RSAManager.decrypt(request.json['user_id'], private_key)
+    user_pwd = RSAManager.decrypt(request.json['user_pwd'], private_key)
     
-    user_id = RSAManager.decrypt(user_id, private_key)
-    user_pwd = RSAManager.decrypt(user_pwd, private_key)
-    
-    if user_id not in USERS:
+    if user_id not in USERDB: # user가 DB에 없는 경우
         json_res = { 'ok': False, 'error': 'Invalid ID or Password.' }
-    elif not USERS[user_id].can_login(user_pwd):
+    elif not User(USERDB.select(user_id)).can_login(user_pwd): # ID와 비밀번호가 매칭되지 않는 경우
         json_res = { 'ok': False, 'error': 'Invalid ID or Password.' }
     else:
         json_res = { 'ok': True, 'msg': f'user <{user_id}> logined' }
-        USERS[user_id].authenticated = True
-        login_user(USERS[user_id], remember=True)
+        user = USERDB.getDB()[user_id]
+        user.authenticated = True
+        USERDB.insert(user_id, user())
+        login_user(User(user), remember=True)
+    return jsonify(json_res)
+
+# 회원가입 API 엔드포인트
+@app.route('/api/register', methods=['POST'])
+def register():
+    private_key = session['private_key']
+    
+    user_id = RSAManager.decrypt(request.json['user_id'], private_key)
+    user_pwd = RSAManager.decrypt(request.json['user_pwd'], private_key)
+    email = RSAManager.decrypt(request.json['email'], private_key)
+    
+    user = User(user_id, user_pwd, email)
+    
+    if USERDB.where('user_id', user_id) != -1: # 이미 존재하는 UserID일 경우
+        json_res = { 'ok': False, 'error': 'User ID Duplicated.' }
+    else:
+        json_res = { 'ok': True, 'msg': f'User <{user_id}> Added' }
+        USERDB.insert(user_id, user())
     return jsonify(json_res)
 
 # 로그아웃 API 엔드포인트
