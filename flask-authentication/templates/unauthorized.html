@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>401 UnAuthorized</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/unauthorized.css') }}"></link>
 </head>
 <body>
-<h1>401 Unauthorized</h1>
-<button onclick="location.href = '/login'">Go Back</button>
+    <div class="background">
+        <h1 class="text">401 Unauthorized</h1>
+        <button onclick="location.href = '/login'">Go Back</button>
+    </div>
 </body>
 </html>

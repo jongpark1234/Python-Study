@@ -1,4 +1,4 @@
-from model.user import *
+from models.user import *
 
 # 더미 사용자 데이터베이스
 USERS = {

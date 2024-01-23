@@ -1,10 +1,11 @@
 import os, sys
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, session, jsonify, render_template, redirect
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 from werkzeug.wrappers import Response
-from model.user import User
-from config.config import USERS
+from models.user import User
+from configs.config import USERS
+from modules.crypt.rsaManager import RSAManager
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -30,7 +31,10 @@ def indexPage():
 # 로그인 페이지 렌더링
 @app.route('/login', methods=['GET'])
 def loginPage():
-    return render_template('login.html')
+    private_key, public_key = RSAManager.init()
+    
+    session['private_key'] = private_key
+    return render_template('login.html', public_key=public_key.decode())
 
 # 메인 페이지 렌더링
 @app.route('/main', methods=['GET'])
@@ -49,11 +53,11 @@ def addUser():
     user_id = request.json['user_id']
     user_pwd = request.json['user_pwd']
     if user_id in USERS:
-        json_res = {'ok': False, 'error': f'user <{user_id}> already exists'}
+        json_res = { 'ok': False, 'error': f'user <{user_id}> already exists' }
     else:
         user = User(user_id, user_pwd)
         USERS[user_id] = user
-        json_res = {'ok': True, 'msg': f'user <{user_id}> added'}
+        json_res = { 'ok': True, 'msg': f'user <{user_id}> added' }
     return jsonify(json_res)
 
 # 로그인 API 엔드포인트
@@ -61,12 +65,18 @@ def addUser():
 def login():
     user_id = request.json['user_id']
     user_pwd = request.json['user_pwd']
+    
+    private_key = session['private_key']
+    
+    user_id = RSAManager.decrypt(user_id, private_key)
+    user_pwd = RSAManager.decrypt(user_pwd, private_key)
+    
     if user_id not in USERS:
-        json_res = {'ok': False, 'error': 'Invalid user_id or password'}
+        json_res = { 'ok': False, 'error': 'Invalid ID or Password.' }
     elif not USERS[user_id].can_login(user_pwd):
-        json_res = {'ok': False, 'error': 'Invalid user_id or password'}
+        json_res = { 'ok': False, 'error': 'Invalid ID or Password.' }
     else:
-        json_res = {'ok': True, 'msg': f'user <{user_id}> logined'}
+        json_res = { 'ok': True, 'msg': f'user <{user_id}> logined' }
         USERS[user_id].authenticated = True
         login_user(USERS[user_id], remember=True)
     return jsonify(json_res)

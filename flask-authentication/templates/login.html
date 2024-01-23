@@ -4,23 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}"></link>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/bin/jsencrypt.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/bin/forge.min.js') }}"></script>
 </head>
 <body>
-    <h2>Login</h2>
+    <input style="display: none;" id="public_key" value="{{ public_key }}"/>
+    <div class="background">
+        <div class="container">
+            <h1 class="title">Login</h1>
+            <div class="rowContainer">
+                <input class="containerInput" type="text" id="user_id" name="user_id" placeholder="ID" required>
+            </div>
+            
+            <div class="rowContainer">
+                <input class="containerInput" type="password" id="user_pwd" name="user_pwd" placeholder="Password" required>
+            </div>
+            
+            <div class="rowContainer">
+                <a href="/find" class="registerButton">Forgot Password?</a>
+            </div>
 
-    <label for="user_id">User ID:</label>
-    <input type="text" id="user_id" name="user_id" required>
+            <button class="submitButton" onclick="submitLogin()">GO!</button>
 
-    <label for="user_pwd">Password:</label>
-    <input type="password" id="user_pwd" name="user_pwd" required>
-
-    <button type="submit" onclick="submitLogin()">Login</button>
+            <div class="rowContainer" style="justify-content: center; margin-bottom: auto;">
+                <span class="registerMessage">Don't have an account?</span>
+                <a href="/register" class="registerButton">Register!</a>
+            </div>
+        </div>
+    </div>
 
     <script>
+        const encrypt = (public_key, plain_msg) => {
+            return forge.util.encode64(public_key.encrypt(plain_msg, "RSA-OAEP", {
+                md: forge.md.sha256.create(),
+                mgf1: forge.mgf1.create()
+            }))
+        }
+
         const submitLogin = () => {
             const user_id = document.getElementById('user_id').value;
             const user_pwd = document.getElementById('user_pwd').value;
 
+            const public_key = forge.pki.publicKeyFromPem(document.getElementById('public_key').value);
+            
             // AJAX로 로그인 요청 보내기
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/login', true);
@@ -37,7 +64,10 @@
                 }
             };
 
-            xhr.send(JSON.stringify({ 'user_id': user_id, 'user_pwd': user_pwd }));
+            xhr.send(JSON.stringify({
+                'user_id': encrypt(public_key, user_id),
+                'user_pwd': encrypt(public_key, user_pwd)
+            }));
         }
     </script>
 </body>
