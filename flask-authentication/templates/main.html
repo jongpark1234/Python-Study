@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}"></link>
 </head>
 <body style="display: flex; justify-content: center; align-items: center;">
-    <h2>메인 페이지 입니다</h2>
-    <button onclick="submitLogout()">로그아웃</button>
-
+    <div class="background">
+        <div class="container">    
+            <h2>메인 페이지</h2>
+            <button class="submitButton" onclick="submitLogout()">로그아웃</button>        
+        </div>
+    </div>
     <script>
         const submitLogout = () => {
             // AJAX로 로그아웃 요청 보내기

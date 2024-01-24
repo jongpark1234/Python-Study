@@ -1,4 +1,4 @@
-import json
+import os, sys, json
 from typing import Any
 
 DB_LOCATION = "C:/Github/Python-Study/flask-authentication/db/jsons"
@@ -23,9 +23,11 @@ class DB:
         DB[key] = value
         self.saveDB(DB)
     
-    def select(self, key: str) -> Any:
-        DB = self.getDB()
-        return DB[key]
+    def select(self, key: str) -> dict | list:
+        try:
+            return self.getDB()[key]
+        except KeyError:
+            return None
     
     def where(self, key: str, value: Any) -> int:
         try:

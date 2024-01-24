@@ -18,4 +18,4 @@ class RSAManager:
     
     @staticmethod
     def decrypt(encrypted_msg: str, private_key: str) -> str:
-        return PKCS1_OAEP.new(RSA.import_key(private_key), hashAlgo=SHA256).decrypt(b64decode(encrypted_msg)).decode()
+        return PKCS1_OAEP.new(RSA.import_key(private_key), hashAlgo=SHA256).decrypt(b64decode(encrypted_msg)).decode()    

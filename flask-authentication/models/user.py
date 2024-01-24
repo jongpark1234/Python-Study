@@ -1,27 +1,36 @@
-import json
-class User:
-    def __init__(self, user_id: str, user_pwd: str=None, email: str=None, authenticated: bool=False):
+from flask_login import UserMixin
+class User():
+    def __init__(self, 
+                 user_id: str, 
+                 user_pwd: str = None, 
+                 email: str = None, 
+                 active: bool = True,
+                 anonymous: bool = False
+                ):
         self.user_id = user_id
         self.user_pwd = user_pwd
         self.email = email
-        self.authenticated = authenticated
+        self.active = active
+        self.anonymous = anonymous
 
-    def __repr__(self):
+    def __repr__(self) -> dict:
         return str({
             'user_id': self.user_id,
             'user_pwd': self.user_pwd,
             'email': self.email,
-            'authenticated': self.authenticated
+            'active': self.active,
+            'anonymous': self.anonymous,
         })
     
-    def __call__(self) -> dict:
+    def serialize(self) -> dict:
         return {
             'user_id': self.user_id,
             'user_pwd': self.user_pwd,
             'email': self.email,
-            'authenticated': self.authenticated
+            'active': self.active,
+            'anonymous': self.anonymous,
         }
-
+    
     def can_login(self, user_pwd):
         return self.user_pwd == user_pwd
 
@@ -32,7 +41,7 @@ class User:
         return self.user_id
 
     def is_authenticated(self):
-        return self.authenticated
+        return True
 
     def is_anonymous(self):
         return False
