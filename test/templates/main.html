@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Main</h1>
+    <input id="ainput"/>
+    <button onclick="submit()">asdasd</button>
+    <script>
+        const submit = () => {
+            for (let i = 0; i < 10; i++) {
+
+                const serial_code = {
+                    name: i.toString()
+                };
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/disaster/list', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        let response = JSON.parse(xhr.responseText);
+                        console.log(response);
+                    }
+                };
+                xhr.send(JSON.stringify(serial_code)); 
+            }
+        }
+    </script>
+</body>
+</html>
